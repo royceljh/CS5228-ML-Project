@@ -34,6 +34,9 @@ def clean_replace_numeric(df, feature, search, replace):
 def format_numeric(df, feature):
     df[feature] = pd.to_numeric(df[feature], errors='coerce')
 
+def format_integer(df, feature):
+    df[feature] = df[feature].astype('int')
+
 def plot_trend(df, feature):
     plt.figure(figsize=(10,6))
     sns.lineplot(data=df, x=feature, y='monthly_rent')
