@@ -55,3 +55,6 @@ def target_encode(df, feature):
     target_encoder_smooth.fit(df[feature], df['monthly_rent'])
     df[feature] = target_encoder_smooth.transform(df[feature])
     df[feature] = df[feature].round()
+
+def generate_dummies(df, feature):
+    return pd.get_dummies(df[feature], feature)
