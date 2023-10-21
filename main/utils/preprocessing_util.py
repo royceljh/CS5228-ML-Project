@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import category_encoders as ce
+from sklearn.model_selection import StratifiedKFold
 
 def get_min(df, feature):
     print('Min: ' + str(df[feature].min()))
@@ -58,3 +59,27 @@ def target_encode(df, feature):
 
 def generate_dummies(df, feature):
     return pd.get_dummies(df[feature], feature)
+
+
+def create_folds(data, num_splits):
+    # we create a new column called kfold and fill it with -1
+    data["kfold"] = -1
+    
+    # the next step is to randomize the rows of the data
+    data = data.sample(frac=1).reset_index(drop=True)
+
+    # calculate number of bins by Sturge's rule
+    num_bins = int(np.floor(1 + np.log2(len(data))))
+    
+    # bin targets
+    data.loc[:, "bins"] = pd.cut(
+        data["monthly_rent"], bins=num_bins, labels=False
+    )    
+    kf = StratifiedKFold(n_splits=num_splits)
+    
+    # Using bins to split
+    for f, (t_, v_) in enumerate(kf.split(X=data, y=data.bins.values)):
+        data.loc[v_, 'kfold'] = f
+    
+    data = data.drop("bins", axis=1)
+    return data
