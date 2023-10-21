@@ -95,12 +95,9 @@ def create_folds(data, num_splits):
 
     data = data.drop("bins", axis=1)
     return data
-<<<<<<< Updated upstream
-=======
 
 def calculate_distance(lat, lon, other_df):
     lat_diff = other_df['latitude'] - lat
     lon_diff = other_df['longitude'] - lon
     distances = np.sqrt(lat_diff**2 + lon_diff**2)
     return distances.min()
->>>>>>> Stashed changes
