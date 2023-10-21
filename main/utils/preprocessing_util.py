@@ -58,7 +58,7 @@ def target_encode(df, feature):
     df[feature] = df[feature].round()
 
 def generate_dummies(df, feature):
-    return pd.get_dummies(df[feature], feature)
+    return pd.get_dummies(df[feature], feature, drop_first=True)
 
 
 def create_folds(data, num_splits):
