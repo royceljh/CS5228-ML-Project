@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import category_encoders as ce
 from sklearn.model_selection import StratifiedKFold
 
 
@@ -35,18 +34,14 @@ def get_counts(df, feature):
     print(value_counts)
 
 
-def clean_replace_numeric(df, feature, search, replace):
-    df[feature] = np.where(
+def search_and_replace(df, feature, search, replace):
+    return np.where(
         df[feature].str.contains(search, na=False), replace, df[feature]
     )
 
 
 def format_numeric(df, feature):
     df[feature] = pd.to_numeric(df[feature], errors="coerce")
-
-
-def format_integer(df, feature):
-    df[feature] = df[feature].astype("int")
 
 
 def plot_trend(df, feature):
@@ -62,13 +57,6 @@ def plot_scatter(df, feature1, feature2):
     plt.xlabel(feature1)
     plt.ylabel("Monthly Rent")
     plt.show()
-
-
-def target_encode(df, feature):
-    target_encoder_smooth = ce.TargetEncoder(cols=[feature], smoothing=10)
-    target_encoder_smooth.fit(df[feature], df["monthly_rent"])
-    df[feature] = target_encoder_smooth.transform(df[feature])
-    df[feature] = df[feature].round()
 
 
 def generate_dummies(df, feature):
