@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import StratifiedKFold
+from math import radians, sin, cos, sqrt, atan2
+
 
 
 def get_min(df, feature):
@@ -84,8 +86,15 @@ def create_folds(data, num_splits):
     data = data.drop("bins", axis=1)
     return data
 
-def calculate_distance(lat, lon, other_df):
-    lat_diff = other_df['latitude'] - lat
-    lon_diff = other_df['longitude'] - lon
-    distances = np.sqrt(lat_diff**2 + lon_diff**2)
-    return distances.min()
+def calculate_distance(lat1, lon1, other_df, year=None):
+    r = 6371
+    _other_df=other_df.copy()
+    if year:
+        _other_df = _other_df[_other_df['opening_year']<= year]
+    lat1 = radians(lat1)
+    lon1 = radians(lon1)
+    lat_diff = np.absolute(_other_df['latitude'] - lat1)
+    lon_diff =np.absolute(_other_df['longitude'] - lon1)
+    a = np.sin(lat_diff/2)**2 + np.cos(lat1) * np.cos(lon_diff) * np.sin(lon_diff / 2)**2
+    c = 2 * np.arcsin(np.sqrt(a))
+    return np.nanmin(c) * r
