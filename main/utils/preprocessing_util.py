@@ -98,3 +98,24 @@ def calculate_distance(lat1, lon1, other_df, year=None):
     a = np.sin(lat_diff/2)**2 + np.cos(lat1) * np.cos(lon_diff) * np.sin(lon_diff / 2)**2
     c = 2 * np.arcsin(np.sqrt(a))
     return np.nanmin(c) * r
+
+def add_stock_price_trend(df):
+    stock_price = pd.read_csv('../auxiliary-data/sg-stock-prices.csv')
+    # constituents of STI.
+    STI = ['D05', 'O39', 'U11', 'Z74', 'J36', 'J37', 'H78', 'C09', 'C38U', 'BN4', 'F34', 'A17U', 'Y92', 'G13', 'C6L', 'V03', 'C52', 'ME8U', 'S68', 'N2IU']
+    # we interested in stocks that are to STI only
+    stock_price['symbol'] = stock_price['symbol'].apply(lambda x: x.replace('.SI', ''))
+    stock_price = stock_price[stock_price['symbol'].str.contains('|'.join(STI))]
+    # we look at price of the stock at closing
+    stock_price = stock_price.drop(columns=['open','high','low','adjusted_close','symbol'])
+    stock_price=stock_price.pivot(index='date',columns='name', values='close')
+    # rename index for ease of joining later
+    stock_price.index.rename('rent_approval_date',inplace=True)
+    # convert index to datetime
+    stock_price.index = pd.to_datetime(stock_price.index)
+    stock_price_monthly_mean = stock_price.resample('M').mean()
+    # scale it by avg closing price of first month
+    stock_price_monthly_mean = stock_price_monthly_mean/stock_price_monthly_mean.iloc[0]
+    stock_price_monthly_mean.index = stock_price_monthly_mean.index.strftime('%Y-%m')
+    return df.join(stock_price_monthly_mean,on='rent_approval_date')
+
