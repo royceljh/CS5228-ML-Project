@@ -48,6 +48,53 @@ def calculate_distance_pang(lat, lon, other_df):
     distances = np.sqrt(lat_diff**2 + lon_diff**2)
     return distances.min()
 
+
+def preprocess_geographic_location(df:DataFrame) -> DataFrame :
+    # code by Ding Ming
+    # generates features: shortest distance to mrt, shortest distance to plan mrt, /
+    # shortest distance to primary school, shortest distance to shopping mall, /
+    # any primary school within 1km radius, any top primary school within 1 km radius
+
+    def calculate_distance_using_lat_lon(lat1, lon1, other_df, year=None):
+        # calculate distance using lat and long degrees between 2 points
+        r = 6371
+        _other_df=other_df.copy()
+        if year:
+            # year of rental input is required when calculating shortest distance to MRT station
+            _other_df = _other_df[_other_df['opening_year']<= year]
+        lat1 = radians(lat1)
+        lon1 = radians(lon1)
+        lat_diff = np.absolute(_other_df['latitude'] - lat1)
+        lon_diff =np.absolute(_other_df['longitude'] - lon1)
+        a = np.sin(lat_diff/2)**2 + np.cos(lat1) * np.cos(lon_diff) * np.sin(lon_diff / 2)**2
+        c = 2 * np.arcsin(np.sqrt(a))
+        return np.nanmin(c) * r
+
+    _df =df.copy()
+    mrt_exist_df = pd.read_csv('../auxiliary-data/sg-mrt-existing-stations.csv')
+    mrt_exist_df['latitude'] = mrt_exist_df['latitude'].apply(lambda x:radians(x))
+    mrt_exist_df['longitude'] = mrt_exist_df['longitude'].apply(lambda x:radians(x))
+    mrt_planned_df = pd.read_csv('../auxiliary-data/sg-mrt-planned-stations.csv')
+    mrt_planned_df['latitude'] = mrt_planned_df['latitude'].apply(lambda x:radians(x))
+    mrt_planned_df['longitude'] = mrt_planned_df['longitude'].apply(lambda x:radians(x))
+    primary_school_df = pd.read_csv('../auxiliary-data/sg-primary-schools.csv')    
+    primary_school_df['latitude'] = primary_school_df['latitude'].apply(lambda x:radians(x))
+    primary_school_df['longitude'] = primary_school_df['longitude'].apply(lambda x:radians(x))
+    top_primary_school = ['Rosyth School', 'Nan Hua Primary School','St. Hilda’s Primary School', 'Catholic High School', 'Henry Park Primary School','Nanyang Primary School','Tao Nan School','Anglo-Chinese School', 'Raffles Girls’ Primary School']
+    top_primary_school_df = primary_school_df[primary_school_df['name'].isin(top_primary_school)]
+    shopping_mall_df = pd.read_csv('../auxiliary-data/sg-shopping-malls.csv')    
+    shopping_mall_df['latitude'] = shopping_mall_df['latitude'].apply(lambda x:radians(x))
+    shopping_mall_df['longitude'] = shopping_mall_df['longitude'].apply(lambda x:radians(x))
+    # Calculate distances for each row in df
+    _df['dist_mrt_exist'] = _df.apply(lambda row: calculate_distance_using_lat_lon(row['latitude'], row['longitude'], mrt_exist_df,row['rent_approval_year']), axis=1)
+    _df['dist_mrt_planned'] = _df.apply(lambda row: calculate_distance_using_lat_lon(row['latitude'], row['longitude'], mrt_planned_df), axis=1)
+    _df['dist_primary_school'] = _df.apply(lambda row: calculate_distance_using_lat_lon(row['latitude'], row['longitude'], primary_school_df), axis=1)
+    _df['within_1km_primary_school'] = _df['dist_primary_school'] < 1
+    _df['dist_top_primary_school'] = _df.apply(lambda row: calculate_distance_using_lat_lon(row['latitude'], row['longitude'], top_primary_school_df), axis=1)
+    _df['within_1km_top_primary_school'] = _df['dist_top_primary_school'] < 1
+    _df['dist_shopping_mall'] = _df.apply(lambda row: calculate_distance_using_lat_lon(row['latitude'], row['longitude'], shopping_mall_df), axis=1)
+    return _df
+
 def preprocess_geographic_location_pang(df):
     _df =df.copy()
     mrt_exist_df = pd.read_csv('../../auxiliary-data/sg-mrt-existing-stations.csv')
@@ -155,10 +202,12 @@ def generate_dummies(df, feature):
     return pd.get_dummies(df[feature], feature)
 
 def add_stock_price_trend(df):
-    '''
-    This function enhance the train dataset by incorporating information about stock prices.
-    Due to its poor perforamance, we did not use these features in the final model
-    '''
+    # code by Ding Ming
+    # This function enhance the train dataset by incorporating information about stock prices.
+    # generates features: normalized stock price of the STI constituents.
+    # joint on rent_approval_date
+    # Due to its poor perforamance, we did not use these features in the final model
+    
     # Load stock price data
     stock_price = pd.read_csv('../auxiliary-data/sg-stock-prices.csv')
     
