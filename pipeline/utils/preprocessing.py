@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
+from pandas import DataFrame
 from math import radians, sin, cos, sqrt, atan2
 import sys
 sys.path.append('../../')
