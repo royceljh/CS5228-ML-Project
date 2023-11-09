@@ -2,6 +2,7 @@ import sys
 import os
 import joblib
 import xgboost as xgb
+import argparse
 sys.path.append('../../')
 sys.path.append('../')
 from utils.preprocessing import *
@@ -90,12 +91,24 @@ def run_inference(test, model_name='lgbm_models', n_fold=25):
     preds_test = np.mean(preds_test, axis=0)
     return preds_test
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--preprocess", required=False, action='store_true')       
+    return parser.parse_args()
+
 if __name__ == '__main__':
+    args = parse_args()
+    to_preprocess = args.preprocess
+    
     train = pd.read_csv('../train/25-fold-train.csv')
     columns = [col for col in train.columns if col not in ['kfold', 'monthly_rent']]
-    # test_df = preprocess_test_df()
-    test_df = pd.read_csv('test_df.csv')
-    # test_df.to_csv('test_df.csv', index=False)
+    if to_preprocess:
+        # If to_preprocess flag is set, we preprocess the test.csv
+        test_df = preprocess_test_df()
+        # test_df.to_csv('test_df.csv', index=False)
+    else:
+        # If to_preprocess flag is not set, we load the preprocessed test_df.csv
+        test_df = pd.read_csv('test_df.csv')
     
     lgbm_models_path = ['lgbm_models', 'lgbm_models2', 'lgbm_models3']
     xgb_models_path = ['xgb_models', 'xgb_models2']

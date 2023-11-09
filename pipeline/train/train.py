@@ -135,14 +135,24 @@ def train_catboost(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, required=True, default=0)   
+    parser.add_argument("--model", type=str, required=True, default=0)
+    parser.add_argument("--preprocess", required=False, action='store_true')       
     return parser.parse_args()
 
 if __name__ == '__main__':
     args = parse_args()
     model_name = args.model
+    to_preprocess = args.preprocess
     
-    train = pd.read_csv('25-fold-train.csv')
+    if to_preprocess:
+        # If to_preprocess flag is set, we preprocess the train.csv
+        df = pd.read_csv('../../data/train.csv')
+        print("Preprocessing dataframe..")
+        train = preprocess(df)
+    else:
+        # If to_preprocess flag is not set, we load the preprocessed train csv
+        train = pd.read_csv('25-fold-train.csv')
+        
     columns = [col for col in train.columns if col not in ['kfold', 'monthly_rent']]
     target = 'monthly_rent'    
 
