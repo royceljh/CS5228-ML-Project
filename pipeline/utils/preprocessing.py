@@ -154,6 +154,45 @@ def clean_replace_numeric(df, feature, search, replace):
 def generate_dummies(df, feature):
     return pd.get_dummies(df[feature], feature)
 
+def add_stock_price_trend(df):
+    '''
+    This function enhance the train dataset by incorporating information about stock prices.
+    Due to its poor perforamance, we did not use these features in the final model
+    '''
+    # Load stock price data
+    stock_price = pd.read_csv('../auxiliary-data/sg-stock-prices.csv')
+    
+    # List of constituents of STI.
+    STI = ['D05', 'O39', 'U11', 'Z74', 'J36', 'J37', 'H78', 'C09', 'C38U', 'BN4', 'F34', 'A17U', 'Y92', 'G13', 'C6L', 'V03', 'C52', 'ME8U', 'S68', 'N2IU']
+    
+    # Remove '.SI' from symbol names and filter for STI stocks only
+    stock_price['symbol'] = stock_price['symbol'].apply(lambda x: x.replace('.SI', ''))
+    stock_price = stock_price[stock_price['symbol'].str.contains('|'.join(STI))]
+    
+    # Keep only closing prices
+    stock_price = stock_price.drop(columns=['open', 'high', 'low', 'adjusted_close', 'symbol'])
+    
+    # Pivot the data to have dates as index and stock names as columns
+    stock_price = stock_price.pivot(index='date', columns='name', values='close')
+    
+    # Rename index for ease of joining later
+    stock_price.index.rename('rent_approval_date', inplace=True)
+    
+    # Convert index to datetime
+    stock_price.index = pd.to_datetime(stock_price.index)
+    
+    # Resample the data to get monthly mean prices
+    stock_price_monthly_mean = stock_price.resample('M').mean()
+    
+    # Scale the data by dividing by the average closing price of the first month
+    stock_price_monthly_mean = stock_price_monthly_mean / stock_price_monthly_mean.iloc[0]
+    
+    # Format index to 'yyyy-mm'
+    stock_price_monthly_mean.index = stock_price_monthly_mean.index.strftime('%Y-%m')
+    
+    # Join the stock price data with the original DataFrame on 'rent_approval_date'
+    return df.join(stock_price_monthly_mean, on='rent_approval_date')
+
 def preprocess(df=None):
     """
         preprocess train dataframe to generate features
