@@ -48,8 +48,12 @@ $ pip install -r requirements.txt
 ```
 
 ## Training
-1. Train the following [list of models](#Model-overview-of-our-final-submission).
-e.g. To train a specific model run the following command
+The file `pipeline/train/train.py` has two flags 
+ - <b>Flags</b>
+     "--model": model name which contains one of the models from the following list <b>:['lgbm', 'xgb', 'tabnet', 'catboost', 'linear', 'lasso', 'ridge']</b>
+    "--preprocess": whether to preprocess the train.csv
+
+- Train using pre-generated training csv from `pipeline/train/25-fold-train.csv` (This will skip any preprocessing, since preprocessing takes time)
     ```
     > python train.py --model "lgbm_models"
     > python train.py --model "xgb_models"
@@ -59,18 +63,31 @@ e.g. To train a specific model run the following command
     > python train.py --model "lasso_models"
     > python train.py --model "ridge_models"
     ```
-    This will train a specific model type for 25 times (25-folds). After training the model weights will be stored at `train/models/lgbm_models/0..24.pkl`
+    This will train a specific allowable models from the list <b>['lgbm', 'xgb', 'tabnet', 'catboost', 'linear', 'lasso', 'ridge']</b> for 25 times (25-folds). After each training run, the model weights will be stored at
+    `train/models/lgbm_models/0..24.pkl`
     `train/models/xgb_models/0..24.pkl`
     etc..
-
-
+    
+- To train the model without using the pre-generated training csv, add the preprocess flag. (This will start preprocessing the original `train.csv` before each training run)
+    ```
+    > python train.py --model "lgbm_models" --preprocess
+    ```
 ## Inference
-* Use `inference.py` in the `inference` folder to run inference on the preprocessed test dataframe `test_df.csv`.
-* This will run the [ensemble model](#Model-overview-of-our-final-submission) using the optimial weights to combine the individual model predictions using weighted averaging.
+The file `pipeline/inference/inference.py` has one flag
+- <b>Flags</b>
+  “–preprocess”: whether to sart preprocess the test.csv
+
+* Run `pipeline/inference/inference.py` to perform on the preprocessed test dataframe `test_df.csv`. 
     ```
     > python inference.py
     ```
-* After running inference, it will generate a `submission.csv` in the same directory    
+    This will run the [list of models](#Model-overview-of-our-final-submission) using the optimial weights to combine the individual model predictions using weighted averaging.
+
+* Run it with --preprocess flag, to start processing the test.csv from scratch (Optional)
+    ```
+    python inference.py --preprocess
+    ```
+    After running inference, it will generate a `submission.csv` in the same directory    
 
 ### Team 49
 | Team member | Workload |
