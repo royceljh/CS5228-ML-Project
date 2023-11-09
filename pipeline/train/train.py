@@ -16,7 +16,12 @@ from utils.const import *
 
 def train_tabnet(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
     """
-    train a tabular neural network model
+        train a tabular neural network model
+        X_train_cv: numpy train features
+        y_train_cv: numpy train target
+        X_eval_cv: numpy eval features
+        y_eval_cv: numpy eval target
+        returrn: the model trained on X_train_cv
     """
     model = TabNetRegressor(optimizer_fn=torch.optim.AdamW,
                             optimizer_params=dict(lr=2e-2),
@@ -42,7 +47,12 @@ def train_tabnet(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
 
 def train_lgbm(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
     """
-    train a gradient boosting LGBM model
+        train a gradient boosting LGBM model
+        X_train_cv: numpy train features
+        y_train_cv: numpy train target
+        X_eval_cv: numpy eval features
+        y_eval_cv: numpy eval target
+        returrn: the model trained on X_train_cv
     """
     
     evaluation_results = {}
@@ -64,9 +74,13 @@ def train_lgbm(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
 
 def train_linear(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv, model_type='linear'):
     """
-    train simple linear model as a baseline
+        train simple linear model as a baseline
+        X_train_cv: numpy train features
+        y_train_cv: numpy train target
+        X_eval_cv: numpy eval features
+        y_eval_cv: numpy eval target
+        returrn: the model trained on X_train_cv
     """
-
     if model_type == 'linear':
         model = LinearRegression()
     elif model_type == 'lasso':
@@ -78,9 +92,13 @@ def train_linear(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv, model_type='linea
 
 def train_xgb(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
     """
-    train a gradient boosting XGBoost model
+        train a gradient boosting XGBoost model
+        X_train_cv: numpy train features
+        y_train_cv: numpy train target
+        X_eval_cv: numpy eval features
+        y_eval_cv: numpy eval target
+        returrn: the model trained on X_train_cv
     """
-    
     dtrain = xgb.DMatrix(X_train_cv, y_train_cv)
     dvalid = xgb.DMatrix(X_eval_cv, y_eval_cv)
     model = xgb.train(
@@ -95,9 +113,13 @@ def train_xgb(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
 
 def train_catboost(X_train_cv, y_train_cv, X_eval_cv, y_eval_cv):
     """
-    train a gradient boosting CatBoostRegressor
+        train a gradient boosting CatBoostRegressor
+        X_train_cv: numpy train features
+        y_train_cv: numpy train target
+        X_eval_cv: numpy eval features
+        y_eval_cv: numpy eval target
+        returrn: the model trained on X_train_cv
     """
-    
     # Create the CatBoost regressor model
     model = CatBoostRegressor(iterations=296,
                               depth=8,
@@ -125,7 +147,7 @@ if __name__ == '__main__':
     target = 'monthly_rent'    
 
     models = []
-    for fold in range(25):
+    for fold in range(25): # train the model on 25-folds
         print(fold)
         X_train_cv = train[train["kfold"] != fold][columns]
         y_train_cv = train[train["kfold"] != fold][target]        

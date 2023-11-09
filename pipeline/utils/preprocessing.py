@@ -14,6 +14,12 @@ def format_integer(df, feature):
     df[feature] = df[feature].astype('int')
 
 def create_folds(data, num_splits):
+    """
+        stratified k-fold split by binning the monthly_rent into equal distribution
+        data: dataframe
+        num_splits: number of folds to create
+        return: dataframe with kfold column
+    """
     # we create a new column called kfold and fill it with -1
     data["kfold"] = -1
     
@@ -57,8 +63,6 @@ def preprocess_geographic_location_pang(df):
     
     
 def custom_func(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -68,8 +72,6 @@ def custom_func(row):
     return year_month_monthly_coe_mean_value
 
 def custom_func_quota(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -91,8 +93,6 @@ def custom_func_bids(row):
 
 
 def custom_func_open(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -102,8 +102,6 @@ def custom_func_open(row):
     return year_month_monthly_adjusted_close_mean_value
 
 def custom_func_high(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -113,8 +111,6 @@ def custom_func_high(row):
     return year_month_monthly_adjusted_close_mean_value
 
 def custom_func_low(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -124,8 +120,6 @@ def custom_func_low(row):
     return year_month_monthly_adjusted_close_mean_value
 
 def custom_func_close(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -135,8 +129,6 @@ def custom_func_close(row):
     return year_month_monthly_adjusted_close_mean_value
 
 def custom_func_adjusted_close(row):
-    # town = row['town']
-    # monthly_rent_by_town = town_mean_dict[town]
     rent_approval_year = row['rent_approval_year']
     rent_approval_month = int(row['rent_approval_month']) - 1
     
@@ -151,7 +143,7 @@ def generate_folds(df):
     df['rent_approval_month'] = df['rent_approval_date'].apply(lambda x: x.split('-')[1])
     df = preprocess_geographic_location_pang(df)
     
-    n_folds = 5
+    n_folds = 25
     df = create_folds(df, num_splits=n_folds)
     
     return df
@@ -163,6 +155,11 @@ def generate_dummies(df, feature):
     return pd.get_dummies(df[feature], feature)
 
 def preprocess(df=None):
+    """
+        preprocess train dataframe to generate features
+        df: train dataframe
+        return: preprocessed dataframe with 285 features
+    """        
     df = pd.read_csv('../../data/train.csv')
     sg_coe_df = pd.read_csv('../../auxiliary-data/sg-coe-prices.csv')
     sg_coe_df['month'] = sg_coe_df['month'].apply(lambda x: month_to_int[x])

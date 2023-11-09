@@ -9,8 +9,9 @@ from utils.const import *
 
 def preprocess_test_df(df=None):
     """
-        preprocess dataframe to generate features
-        df: Dataframe
+        preprocess test dataframe to generate features
+        df: test dataframe
+        return: preprocessed dataframe with 285 features
     """
     test = pd.read_csv('../../data/test.csv')
     test = preprocess_geographic_location_pang(test)
